@@ -57,3 +57,7 @@ node cli/index.js --worker https://your-worker.example.workers.dev \
     recipient@example.com "Hello from VMTP via Worker"
 ```
 
+
+## License
+
+This project is licensed under the terms of the MIT License. See [LICENSE](LICENSE) for details.
