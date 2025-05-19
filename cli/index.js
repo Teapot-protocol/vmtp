@@ -10,7 +10,17 @@ program
   .option('--subject <subject>', 'message subject', 'VMTP Test')
   .option('--sender <address>', 'sender address', 'noreply@example.com')
   .option('--metadata <pair...>', 'metadata key=value pairs')
-  .option('--metadata-file <path>', 'JSON file containing metadata');
+  .option('--metadata-file <path>', 'JSON file containing metadata')
+  .option(
+    '--attach <path>',
+    'file attachment (may be repeated)',
+    (val, prev) => {
+      if (!prev) return [val];
+      prev.push(val);
+      return prev;
+    },
+    []
+  );
 
 program.parse();
 const opts = program.opts();
@@ -38,7 +48,31 @@ if (opts.metadataFile) {
   }
 }
 
-sendMessage(opts.worker, opts.sender, recipients, opts.subject, body, metadata)
+const attachments = [];
+if (Array.isArray(opts.attach)) {
+  for (const file of opts.attach) {
+    try {
+      attachments.push({
+        filename: file.split(/\/+?/).pop(),
+        contentType: 'application/octet-stream',
+        content: readFileSync(file),
+      });
+    } catch (err) {
+      console.error(`Failed to read attachment ${file}: ${err.message}`);
+      process.exit(1);
+    }
+  }
+}
+
+sendMessage(
+  opts.worker,
+  opts.sender,
+  recipients,
+  opts.subject,
+  body,
+  metadata,
+  attachments
+)
   .then((r) => {
     console.log(r);
   })

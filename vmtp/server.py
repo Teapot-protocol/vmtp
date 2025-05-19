@@ -2,6 +2,7 @@
 
 import asyncore
 import smtpd
+from email import message_from_bytes
 
 
 class VMTPServer(smtpd.SMTPServer):
@@ -13,7 +14,14 @@ class VMTPServer(smtpd.SMTPServer):
 
     def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
         print(f"Received message from {mailfrom} to {rcpttos}")
-        print(data)
+        msg = message_from_bytes(data)
+        if msg.is_multipart():
+            for part in msg.iter_attachments():
+                print(
+                    f"Attachment: {part.get_filename()} ({part.get_content_type()})"
+                )
+        else:
+            print(msg.get_payload())
         return None  # accept the message
 
     # Advertise VMTP during EHLO

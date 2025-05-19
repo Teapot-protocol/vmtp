@@ -30,8 +30,25 @@ class VMTPClient:
         subject: str,
         body: str,
         metadata: dict | None = None,
+        attachments: Iterable[tuple[str, bytes]] | None = None,
     ) -> None:
-        """Send a message using VMTP if supported."""
+        """Send a message using VMTP if supported.
+
+        Parameters
+        ----------
+        sender : str
+            The address of the sender.
+        recipients : Iterable[str]
+            Recipient addresses.
+        subject : str
+            Message subject line.
+        body : str
+            Message body text.
+        metadata : dict | None
+            Optional key/value metadata pairs.
+        attachments : Iterable[tuple[str, bytes]] | None
+            Optional sequence of ``(filename, content)`` attachments.
+        """
 
         if self._supports_vmtp and metadata:
             for key, value in metadata.items():
@@ -64,6 +81,14 @@ class VMTPClient:
         msg["Subject"] = subject
         msg.set_content(body)
 
+        if attachments:
+            for filename, content in attachments:
+                maintype = "application"
+                subtype = "octet-stream"
+                msg.add_attachment(
+                    content, maintype=maintype, subtype=subtype, filename=filename
+                )
+
         self.smtp.data(msg.as_string())
 
 
@@ -75,10 +100,46 @@ def main() -> None:
     parser.add_argument("body", help="message body")
     parser.add_argument("--server", default="localhost", help="SMTP server host")
     parser.add_argument("--subject", default="VMTP Test", help="message subject")
+    parser.add_argument(
+        "--metadata",
+        action="append",
+        help="metadata key=value pairs (can be repeated)",
+    )
+    parser.add_argument("--metadata-file", help="JSON file with metadata")
+    parser.add_argument(
+        "--attach",
+        action="append",
+        help="file attachment (can be repeated)",
+    )
     args = parser.parse_args()
 
     client = VMTPClient(args.server)
-    client.send_message("noreply@example.com", args.recipient, args.subject, args.body)
+    metadata = {}
+    if args.metadata:
+        for pair in args.metadata:
+            if "=" in pair:
+                k, v = pair.split("=", 1)
+                metadata[k] = v
+    if args.metadata_file:
+        import json
+
+        with open(args.metadata_file, "r", encoding="utf8") as f:
+            metadata.update(json.load(f))
+
+    attachments = []
+    if args.attach:
+        for path in args.attach:
+            with open(path, "rb") as f:
+                attachments.append((path.split("/")[-1], f.read()))
+
+    client.send_message(
+        "noreply@example.com",
+        args.recipient,
+        args.subject,
+        args.body,
+        metadata,
+        attachments,
+    )
     client.close()
 
 
