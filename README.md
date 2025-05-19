@@ -16,6 +16,9 @@ VMTP operates on top of SMTP. Every VMTP client can communicate with a standard 
 
 * `SPEC.md` – Detailed description of the VMTP commands and behavior.
 * `vmtp/` – Reference Python implementation.
+* `worker/` – Cloudflare Worker implementation of a minimal VMTP gateway.
+* `client/` – JavaScript client library for interacting with the worker.
+* `cli/` – Command line utility built on top of the client library.
 
 ## Usage
 
@@ -32,4 +35,25 @@ python -m vmtp.client recipient@example.com "Hello from VMTP"
 ```
 
 When running against a standard SMTP server, the client will automatically fall back to SMTP.
+
+## Cloudflare Worker
+
+The repository also includes a Cloudflare Worker that exposes a minimal HTTP API for sending VMTP messages. Deploy the worker with the Wrangler CLI:
+
+```bash
+wrangler publish
+```
+
+Install the JavaScript dependencies for the CLI:
+
+```bash
+npm install
+```
+
+Once deployed, you can send a message using the provided CLI:
+
+```bash
+node cli/index.js --worker https://your-worker.example.workers.dev \
+    recipient@example.com "Hello from VMTP via Worker"
+```
 
