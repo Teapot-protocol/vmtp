@@ -5,5 +5,11 @@ type = "javascript"
 command = ""
 
 [vars]
-# Example environment variable for the KV namespace
+# Optional upstream HTTP endpoint to forward messages
+# SERVER_URL = "https://example.com/vmtp"
+
+[[kv_namespaces]]
+# Uncomment and set your KV namespace id to enable persistence
+# binding = "MESSAGES"
+# id = "your-namespace-id"
 
