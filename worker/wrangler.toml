@@ -1,0 +1,9 @@
+name = "vmtp-worker"
+type = "javascript"
+
+[build]
+command = ""
+
+[vars]
+# Example environment variable for the KV namespace
+

@@ -26,6 +26,30 @@ METADATA key value
 
 Allows the client to attach arbitrary key/value metadata to the next message. Metadata lines are sent before the `DATA` command. Servers that do not understand this command simply respond with `502 Command not implemented` and the client omits metadata.
 
+### ENCRYPT
+
+```
+ENCRYPT START
+```
+
+Initiates an opportunistic encryption handshake using a pre-shared key or public key material sent as metadata. If the server declines encryption, the client falls back to plain text delivery.
+
+### BATCH
+
+```
+BATCH <count>
+```
+
+Opens a block to send `<count>` messages without reissuing the `MAIL FROM` command for each message. Each message is separated by a `DATA` segment. This reduces chatter on high latency links.
+
+### READACK
+
+```
+READACK
+```
+
+Requests a read receipt from recipients. When supported, the server will later issue a `STATUS` callback indicating that the message was opened.
+
 ## Fallback Behavior
 
 When a command is rejected with a `5xx` or `502` response, the client must revert to plain SMTP. All VMTP features are optional and designed so that a pure SMTP server will still deliver mail correctly.
