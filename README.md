@@ -34,6 +34,13 @@ The client can send a VMTP message using:
 python -m vmtp.client recipient@example.com "Hello from VMTP"
 ```
 
+Attachments and metadata can be included using the CLI options:
+
+```bash
+python -m vmtp.client --attach example.txt --metadata key=value \
+    recipient@example.com "With extras"
+```
+
 When running against a standard SMTP server, the client will automatically fall back to SMTP.
 
 ## Cloudflare Worker
@@ -55,6 +62,17 @@ Once deployed, you can send a message using the provided CLI:
 ```bash
 node cli/index.js --worker https://your-worker.example.workers.dev \
     recipient@example.com "Hello from VMTP via Worker"
+# send with an attachment
+node cli/index.js --worker https://your-worker.example.workers.dev \
+    --attach ./file.txt recipient@example.com "With attachment"
+```
+
+The worker also exposes a `/batch` endpoint that accepts an array of messages:
+
+```bash
+curl -X POST https://your-worker.example.workers.dev/batch \
+     -H 'Content-Type: application/json' \
+     -d '{"messages":[{"sender":"a@example.com","recipients":["b@example.com"],"subject":"test","body":"hi"}]}'
 ```
 
 
